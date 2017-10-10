@@ -176,15 +176,17 @@ def login(request,
     logger.debug('Redirecting user to the IdP via %s binding.', binding)
     if binding == BINDING_HTTP_REDIRECT:
         try:
-            # do not sign the xml itself, instead use the sigalg to
-            # generate the signature as a URL param
-            sig_alg_option_map = {'sha1': SIG_RSA_SHA1,
-                                  'sha256': SIG_RSA_SHA256}
-            sig_alg_option = getattr(conf, '_sp_authn_requests_signed_alg', 'sha1')
-            sigalg = sig_alg_option_map[sig_alg_option] if sign_requests else None
+            if sign_requests:
+                # do not sign the xml itself, instead use the sigalg to
+                # generate the signature as a URL param
+                sig_alg_option_map = {'sha1': SIG_RSA_SHA1,
+                                      'sha256': SIG_RSA_SHA256}
+                sig_alg_option = getattr(conf, '_sp_authn_requests_signed_alg', 'sha1')
+                kwargs["sigalg"] = sig_alg_option_map[sig_alg_option]
             session_id, result = client.prepare_for_authenticate(
                 entityid=selected_idp, relay_state=came_from,
-                binding=binding, sign=False, sigalg=sigalg)
+                binding=binding, sign=False,
+                **kwargs)
         except TypeError as e:
             logger.error('Unable to know which IdP to use')
             return HttpResponse(text_type(e))
