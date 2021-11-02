@@ -175,6 +175,7 @@ def login(request,
 
     logger.debug('Redirecting user to the IdP via %s binding.', binding)
     if binding == BINDING_HTTP_REDIRECT:
+        kwargs = {}
         try:
             if sign_requests:
                 # do not sign the xml itself, instead use the sigalg to
